@@ -4,7 +4,7 @@ import socket
 
 class user:
     def __init__(self,host,port):
-        self.window = ttk.Window()
+        self.window = ttk.Window(themename='journal')
         self.window.geometry('400x200')
         self.window.title('Whatsapp 2 ')
         self.login_GUI()
@@ -14,7 +14,7 @@ class user:
         for widget in self.window.winfo_children():
             widget.destroy()
 
-    def login_check(self,username,password):
+    def login_server(self,username,password):
         self.login_GUI(retry=True)
 
     def login_GUI(self,retry=False,newUser=False):
@@ -24,7 +24,7 @@ class user:
         login_frame = ttk.Frame(self.window)
 
         if newUser:
-            ttk.Label(login_frame,text='succesfuly registered',font='Calibri 14',foreground='green').pack()
+            ttk.Label(login_frame,text='succesfuly registered',font='Calibri 12',foreground='green').pack(pady=3)
         
 
         sign = ttk.Label(login_frame,text='login',font='Calibri 24 bold')
@@ -47,7 +47,7 @@ class user:
         password_frame.pack()
 
         login_register_frame = ttk.Frame(login_frame)
-        login_button = ttk.Button(login_register_frame,text='login',command=lambda:self.login_check(username_entry.get(),password_entry.get()))
+        login_button = ttk.Button(login_register_frame,text='login',command=lambda:self.login_server(username_entry.get(),password_entry.get()))
         register_button = ttk.Button(login_register_frame,text='register',command=self.register_GUI)
         login_button.pack(side='left',padx=10)
         register_button.pack(side='left')
@@ -100,4 +100,4 @@ class user:
         self.register_frame.pack()
 
 
-a =user()
+a =user('localhost',8080)
