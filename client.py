@@ -1,12 +1,17 @@
 import tkinter as tk
 import ttkbootstrap as ttk
 import socket
+import pickle
 
 class user:
     def __init__(self,host,port):
         self.window = ttk.Window(themename='journal')
         self.window.geometry('400x200')
         self.window.title('Whatsapp 2 ')
+
+        self.conn = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self.conn.connect((host,port))
+
         self.login_GUI()
         self.window.mainloop()
 
@@ -14,9 +19,18 @@ class user:
         for widget in self.window.winfo_children():
             widget.destroy()
 
+    #checks password and username 
     def login_server(self,username,password):
-        self.login_GUI(retry=True)
+        
+        self.conn.send('l'.encode('utf-8'))
+        self.conn.send(pickle.dumps((username,password)))
+        response = pickle.loads(self.conn.recv(50))
+        if response == True:
+            print('succesfuly logged in')
+        else:
+            self.login_GUI(retry=True)
 
+    #GUI for login
     def login_GUI(self,retry=False,newUser=False):
 
         self.clear()
@@ -58,10 +72,14 @@ class user:
 
         login_frame.pack()
 
+    #registers new user
     def register_server(self,username,nickname,password):
         
-        self.login_GUI(newUser=True)
+        print(username,password,nickname)
+        self.conn.send('r'.encode('utf-8'))
+        self.conn.send(pickle.dumps((username,password,nickname)))
 
+    #GUI for new user
     def register_GUI(self):
         self.clear()
         
@@ -99,5 +117,20 @@ class user:
 
         self.register_frame.pack()
 
+    #creates new channel with user and other contact
+    def add_contact_server(self,username):
+        pass
+
+    #to add new contact
+    def add_contact_GUI(self):
+        pass
+
+    #returns all the channels the user is in as list(server)
+    def get_channels(self): 
+        pass
+
+    #scrollable widget with buttons which requests server chat history
+    def channels_GUI(self):
+        pass
 
 a =user('localhost',8080)
