@@ -78,6 +78,10 @@ class user:
         print(username,password,nickname)
         self.conn.send('r'.encode('utf-8'))
         self.conn.send(pickle.dumps((username,password,nickname)))
+        flag = pickle.loads(self.conn.recv(500))
+
+        if flag:
+            self.login_GUI(newUser=True)
 
     #GUI for new user
     def register_GUI(self):

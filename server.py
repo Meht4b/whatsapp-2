@@ -35,6 +35,7 @@ def client_login(conn:socket.socket,addr):
                 print(username,password,nickname)
                 ret = database.register(username,password,nickname)
                 if ret[0]:
+                    conn.send(pickle.dumps(True))
                     user_id = ret[1]
                     break
                 else:
