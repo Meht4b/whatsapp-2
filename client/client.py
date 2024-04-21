@@ -1,7 +1,12 @@
 import tkinter as tk
 import ttkbootstrap as ttk
+#from tkinter import ttk
 import socket
 import pickle
+import threading
+
+
+
 
 class user:
     def __init__(self,host,port):
@@ -11,6 +16,11 @@ class user:
 
         self.conn = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self.conn.connect((host,port))
+        self.send_queue = []
+        self.texts = []
+
+        #fix later
+        self.current_channel = None
 
         self.login_GUI()
         self.window.mainloop()
@@ -26,7 +36,10 @@ class user:
         self.conn.send(pickle.dumps((username,password)))
         response = pickle.loads(self.conn.recv(50))
         if response == True:
-            print('succesfuly logged in')
+            self.client_loop_GUI()
+            threading.Thread(target=self.input_feed).start()
+            threading.Thread(target=self.output_feed).start()
+
         else:
             self.login_GUI(retry=True)
 
@@ -98,7 +111,7 @@ class user:
 
         username_entry.grid(column=1,row=0)
         username_prompt.grid(column=0,row=0)
-        username_frame.pack()
+        username_frame.pack(pady=4)
 
         password_frame = ttk.Frame(self.register_frame)
         password_prompt = ttk.Label(password_frame,text='password:',font='Calibri 14')
@@ -106,7 +119,7 @@ class user:
 
         password_entry.grid(column=1,row=0)
         password_prompt.grid(column=0,row=0)
-        password_frame.pack()
+        password_frame.pack(pady=4)
 
         nickname_frame = ttk.Frame(self.register_frame)
         nickname_prompt = ttk.Label(nickname_frame,text='nickname:',font='Calibri 14')
@@ -114,7 +127,7 @@ class user:
 
         nickname_entry.grid(column=1,row=0)
         nickname_prompt.grid(column=0,row=0)
-        nickname_frame.pack()
+        nickname_frame.pack(pady=4)
 
         register_button = ttk.Button(self.register_frame,text='register',command=lambda:self.register_server(username_entry.get(),password_entry.get(),nickname_entry.get()))
         register_button.pack()
@@ -123,10 +136,10 @@ class user:
 
     #creates new channel with user and other contact
     def add_contact_server(self,username):
-        pass
+        self.conn.send(pickle.dumps(1,username))
 
     #to add new contact
-    def add_contact_GUI(self):
+    def add_contact_GUI(self,retry=False):
         pass
 
     #returns all the channels the user is in as list(server)
@@ -137,6 +150,24 @@ class user:
     def channels_GUI(self):
         pass
 
-        
+    def client_loop_GUI(self):
+        self.clear()
+        self.chat_entry = ttk.Entry(self.window)
+        but = ttk.Button(self.window,text='h',command=self.output_feed)
+        self.chat_entry.pack()
+        but.pack()
+
+    def output_feed(self):
+        self.send_queue.append(self.chat_entry.get())
+        self.send_queue.clear()
+
+    def data_loop(self):
+        self.conn.send(pickle.dumps(self.current_channel))
+
+        self.conn.send(pickle.dumps(self.send_queue))
+        self.send_queue = []
+  
+        if self.current_channel != None:
+            self.texts.extend(0,pickle.loads(self.conn.recv(500)))
 
 a =user('localhost',8080)

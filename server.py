@@ -9,6 +9,8 @@ server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 server.bind(('localhost',8080))
 server.listen()
 
+client_last_read = {}
+client_channels = {}
 database = db('localhost','root','password','test1')
 
 def client_login(conn:socket.socket,addr):
@@ -24,6 +26,14 @@ def client_login(conn:socket.socket,addr):
                 if ret[0]:
                     user_id = ret[1]
                     conn.send(pickle.dumps(True))
+                    
+                    #update later (store on user side)                 
+                    client_last_read[user_id] = 0
+                    client_channels[user_id] = database.get_channels(user_id)[1]
+
+
+                    threading.Thread(target=handle_client,args=(conn,user_id)).start()
+
                     break
                 else:
                     conn.send(pickle.dumps(False))    
@@ -37,7 +47,7 @@ def client_login(conn:socket.socket,addr):
                 if ret[0]:
                     conn.send(pickle.dumps(True))
                     user_id = ret[1]
-                    break
+                    continue
                 else:
                     conn.send(pickle.dumps(False))
                     continue
@@ -47,8 +57,18 @@ def client_login(conn:socket.socket,addr):
             conn.close()
             break
 
-def client_loop(conn,user_id):
-    pass
+
+def handle_client(conn:socket.socket,user_id):
+    while True:
+        try:
+            curr_channel = pickle.load(conn.recv(300))
+            
+            for i in texts:
+                database.create_text()
+
+        except:
+            pass
+
 
 while True:
     conn,addr = server.accept()
