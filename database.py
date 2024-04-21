@@ -18,8 +18,8 @@ class db:
                         """)
             
             self.cursor.execute("""
-                        CREATE TABLE IF NOT EXISTS messages(msg_id int auto_increment primary key,channel_id int,from_id int,sent_date datetime default(getdate
-                                ),message varchar(500)
+                        CREATE TABLE IF NOT EXISTS messages(msg_id int auto_increment primary key,channel_id int,from_id int,sent_date datetime 
+                                ,message varchar(500)
                         )
                         """)
 
@@ -72,17 +72,18 @@ class db:
         
     def create_text(self,channel_id,user_id,msg):
         try:
-            self.cursor.execute(f'insert into messages(channel_id,from_id,message) values({channel_id},{user_id},"{msg}")')
+            self.cursor.execute(f'insert into messages(sent_date,channel_id,from_id,message) values(CURRENT_TIMESTAMP,{channel_id},{user_id},"{msg}")')
             self.conn.commit()
             return (True,)
         except:
             self.conn.rollback()
             return (False,Exception)
 
-    def retrive_text(self,channel_id,last_read):
+    def get_text(self,channel_id,last_read):
         try:
-            self.cursor.execute(f'select channel_id,from_id,sent_date,message from messages where channel_id in {channel_id} and msg_id > {last_read}')
-            return (True,self.cursor.fetchall())
+            self.cursor.execute(f'select * from messages where channel_id in {channel_id} and msg_id > {last_read}')
+            ret = self.cursor.fetchall()
+            return (True,ret,ret[-1][0])
         except Exception as e:
             return (False,e)
     

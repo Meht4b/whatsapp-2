@@ -158,7 +158,7 @@ class user:
         but.pack()
 
     def output_feed(self):
-        self.send_queue.append(self.chat_entry.get())
+        self.send_queue.append((self.current_channel,self.chat_entry.get()))
         self.send_queue.clear()
 
     def data_loop(self):
