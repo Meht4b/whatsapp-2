@@ -4,6 +4,7 @@ import ttkbootstrap as ttk
 import socket
 import pickle
 import threading
+import time
 
 
 
@@ -20,7 +21,7 @@ class user:
         self.texts = []
 
         #fix later
-        self.current_channel = None
+        self.current_channel = 1
 
         self.login_GUI()
         self.window.mainloop()
@@ -37,8 +38,7 @@ class user:
         response = pickle.loads(self.conn.recv(50))
         if response == True:
             self.client_loop_GUI()
-            threading.Thread(target=self.input_feed).start()
-            threading.Thread(target=self.output_feed).start()
+            threading.Thread(target=self.data_loop).start()
 
         else:
             self.login_GUI(retry=True)
@@ -158,16 +158,22 @@ class user:
         but.pack()
 
     def output_feed(self):
+        print(self.chat_entry.get())
+        #replace 1 with 
         self.send_queue.append((self.current_channel,self.chat_entry.get()))
-        self.send_queue.clear()
+
+        
 
     def data_loop(self):
-        self.conn.send(pickle.dumps(self.current_channel))
+        while True:
+            time.sleep(0.5)
+            self.conn.send(pickle.dumps((self.current_channel,self.send_queue)))
+            self.send_queue = []
 
-        self.conn.send(pickle.dumps(self.send_queue))
-        self.send_queue = []
-  
-        if self.current_channel != None:
-            self.texts.extend(0,pickle.loads(self.conn.recv(500)))
+            if self.current_channel != None:
+                data = pickle.loads(self.conn.recv(500))
+                self.texts.extend(data)
+                print(data)
+    
 
 a =user('localhost',8080)
