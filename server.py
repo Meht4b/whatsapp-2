@@ -62,13 +62,19 @@ def handle_client(conn:socket.socket,user_id):
     while True:
         try:
             curr_channel = pickle.load(conn.recv(300))
+            texts_recv = pickle.load(conn.recv(3000))
+            for i in texts_recv:
+                database.create_text(i[0],user_id,i[1])
             
-            for i in texts:
-                database.create_text()
-
+            if curr_channel != None:
+                texts_send = database.get_text((curr_channel,),client_last_read[user_id])
+                conn.send(pickle.dumps(texts_send))
+                
+                
         except:
-            pass
-
+            print(addr,user_id,Exception)
+            conn.close()
+            return None
 
 while True:
     conn,addr = server.accept()
