@@ -156,6 +156,7 @@ class user:
 
     def update_current_channel(self,e):
         self.current_channel = int(self.channels_dropdown.get().split()[0])
+        self.current_channel_name.config(text=self.channels_dropdown.get().split()[1])
 
     def update_sendqueue(self):
         self.send_queue.append(self.message_text.get())
@@ -167,20 +168,36 @@ class user:
 
         self.clear()
 
+        self.window.geometry('690x430')
+
         self.channels_dropdown = ttk.Combobox(self.window,values=self.channels)
         self.channels_dropdown.bind('<<ComboboxSelected>>',self.update_current_channel)
         self.channels_dropdown.grid(row=0,column=0)
-        self.channels_dropdown.config(state="readonly")
+        self.channels_dropdown.config(state="readonly",)
 
         ttk.Button(self.window,text='add contact',command=self.add_contact_GUI).grid(column=0,row=2,sticky='sew')
 
         self.text_area = ttk.ScrolledText(self.window)
-        self.text_area.grid(column=1,row=1,columnspan=2) 
+        self.text_area.grid(column=1,row=1,columnspan=3,sticky='ew') 
 
         self.message_text = ttk.Text(self.window,height=1)
-        self.message_text.grid(column=1,row=2,sticky='we')
+        self.message_text.grid(column=1,row=2,sticky='we',columnspan=2)
 
-        ttk.Button(self.window,text='send',command=self.update_sendqueue).grid(column=2,row=2,sticky='we')
+        ttk.Button(self.window,text='send',command=self.update_sendqueue).grid(column=3,row=2,sticky='we')
+
+
+        self.current_channel_name = ttk.Label(self.window)
+        self.current_channel_name.grid(row=0,column=1)
+
+        
+        top_right_frame = ttk.Frame(self.window)
+        top_right_frame.grid(column=2,row=0,sticky='e',columnspan=2)
+
+
+        add_member  = ttk.Button(top_right_frame,text='add member to channel')
+        add_member.pack(side='left')
+        change_name  = ttk.Button(top_right_frame,text='change channel name')
+        change_name.pack(side='left')
 
 
     def data_loop(self):
@@ -191,7 +208,6 @@ class user:
             self.new_channels_queue.clear()
 
             data = pickle.loads(self.conn.recv(500))
-            print(self.current_channel)
             self.texts.extend(data[0])
             if self.channels != data[1][1]:
                 self.channels = data[1][1]
