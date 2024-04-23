@@ -195,7 +195,7 @@ class user:
 
 
         add_member  = ttk.Button(top_right_frame,text='add member to channel')
-        add_member.pack(side='left')
+        add_member.pack(side='left',padx=4)
         change_name  = ttk.Button(top_right_frame,text='change channel name')
         change_name.pack(side='left')
 
