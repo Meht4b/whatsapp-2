@@ -19,14 +19,15 @@ def client_login(conn:socket.socket,addr):
     while True:
         try:
 
-            login_register = conn.recv(50).decode('utf-8')
+            login_register = conn.recv(500).decode('utf-8')
             if login_register == 'l':
-                username,password = pickle.loads(conn.recv(500))
+                username,password = pickle.loads(conn.recv(5000))
                 print(username,password)
                 ret = database.password_check(username,password)
                 if ret[0]:
                     user_id = ret[1]
-                    conn.send(pickle.dumps(True))
+                    print(database.get_channels(user_id))
+                    conn.send(pickle.dumps((True,database.get_channels(user_id))))
                     
                     #update later (store on user side)                 
                     client_last_read[user_id] = 0
@@ -71,12 +72,22 @@ def handle_client(conn:socket.socket,user_id):
                 for i in data[1]:
                     print(i)
                     database.create_text(i[0],user_id,i[1])
-                
+            
+            if data[2]:
+                for i in data[2]:
+                    contact_id = database.get_uid(i)
+                    username = database.get_username(user_id)
+                    database.create_channel(i+username,member1=user_id,member2=contact_id)
+
+            retData = [[],[]]
+
             if data[0] != None:
                 texts_send = database.get_text(data[0],client_last_read[user_id])
                 print(texts_send)
-                conn.send(pickle.dumps(texts_send))
-                
+                retData[0] = texts_send
+            
+            retData[1] = database.get_channels(user_id)
+            conn.send(pickle.dumps(retData))    
                 
         except Exception as e:
             print(addr,user_id,e)

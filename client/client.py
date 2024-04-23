@@ -18,7 +18,9 @@ class user:
         self.conn = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self.conn.connect((host,port))
         self.send_queue = []
+        self.new_channels_queue = []
         self.texts = []
+        self.channels = []
 
         #fix later
         self.current_channel = 1
@@ -35,8 +37,10 @@ class user:
         
         self.conn.send('l'.encode('utf-8'))
         self.conn.send(pickle.dumps((username,password)))
-        response = pickle.loads(self.conn.recv(50))
-        if response == True:
+        print('respod')
+        response = pickle.loads(self.conn.recv(500))
+        print(response)
+        if response[0] == True:
             self.client_loop_GUI()
             threading.Thread(target=self.data_loop).start()
 
@@ -136,7 +140,7 @@ class user:
 
     #creates new channel with user and other contact
     def add_contact_server(self,username):
-        self.conn.send(pickle.dumps(1,username))
+        self.new_channels_queue.append(username)
 
     #to add new contact
     def add_contact_GUI(self,retry=False):
@@ -150,30 +154,50 @@ class user:
     def channels_GUI(self):
         pass
 
+    def set_current_channel(self):
+        self.current_channel = int(self.channels_dropdown.get().split()[0])
+
+    def update_sendqueue(self):
+        self.send_queue.append(self.message_text.get())
+        self.message_text.delete(1,ttk.END)
+
     def client_loop_GUI(self):
+
         self.clear()
-        self.chat_entry = ttk.Entry(self.window)
-        but = ttk.Button(self.window,text='h',command=self.output_feed)
-        self.chat_entry.pack()
-        but.pack()
+
+        self.channels_dropdown = ttk.Combobox(self.window,values=self.channels)
+        self.channels_dropdown.bind('<<ComboboxSelectd>>',self.set_current_channel)
+        self.channels_dropdown.grid(row=0,column=0)
+
+        ttk.Button(self.window,text='add contact',command=self.add_contact_GUI).grid(column=0,row=2,sticky='sew')
+
+        self.text_area = ttk.ScrolledText(self.window)
+        self.text_area.grid(column=1,row=1,columnspan=2)
+
+        self.message_text = ttk.Text(self.window,height=1)
+        self.message_text.grid(column=1,row=2,sticky='we')
+
+        ttk.Button(self.window,text='send',command=self.update_sendqueue).grid(column=2,row=2,sticky='we')
+
+        
+
 
     def output_feed(self):
         print(self.chat_entry.get())
-        #replace 1 with 
         self.send_queue.append((self.current_channel,self.chat_entry.get()))
-
-        
 
     def data_loop(self):
         while True:
             time.sleep(0.5)
-            self.conn.send(pickle.dumps((self.current_channel,self.send_queue)))
-            self.send_queue = []
+            self.conn.send(pickle.dumps((self.current_channel,self.send_queue,self.new_channels_queue)))
+            self.send_queue.clear()
+            self.new_channels_queue.clear()
 
-            if self.current_channel != None:
-                data = pickle.loads(self.conn.recv(500))
-                self.texts.extend(data)
-                print(data)
-    
+            data = pickle.loads(self.conn.recv(500))
+            self.texts.extend(data[0])
+            if self.channels != data[1]:
+                self.channels = data[1]
+                self.channels_GUI()
+
 
 a =user('localhost',8080)

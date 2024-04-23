@@ -2,7 +2,7 @@ import mysql.connector
 
 class db:
 
-    def __init__(self,host,user,password,database_name):
+    def __init__(self,host:str,user:str,password:str,database_name:str):
         try:
             self.conn = mysql.connector.connect(host=host,user=user,password=password)
             self.cursor = self.conn.cursor()
@@ -26,7 +26,7 @@ class db:
         except Exception as e:
             print(e)
 
-    def password_check(self,username,password):
+    def password_check(self,username:str,password:str):
         try:
             self.cursor.execute("SELECT password,user_id FROM user_details WHERE username = %s",(username,))
             a = self.cursor.fetchall()
@@ -37,7 +37,7 @@ class db:
         except Exception as e:
             return (False,e)
         
-    def register(self,username,password,nicknamae):
+    def register(self,username:str,password:str,nicknamae:str):
         try:
             self.cursor.execute('insert into user_details(username,password,nickname) values (%s,%s,%s)',(username,password,nicknamae))
             user_id=  self.cursor.lastrowid
@@ -47,21 +47,21 @@ class db:
             self.conn.rollback()
             return (False,e)
     
-    def acc_id(self,username):
+    def get_uid(self,username:str):
         try:
             self.cursor.execute(f'select user_id from user_details where username="{username}"')
             return (True,self.cursor.fetchall()[0][0])
         except Exception as e:
             return (False,e)
         
-    def get_username(self,acc_id):
+    def get_username(self,acc_id:int):
         try:
             self.cursor.execute(f'select username from user_details where user_id={acc_id}')
             return (True,self.cursor.fetchall()[0][0])
         except Exception as e:
             return (False,e)
         
-    def create_channel(self,channel_name,member1=None,member2=None,member3=None,member4=None,member5=None):
+    def create_channel(self,channel_name:str,member1=None,member2=None,member3=None,member4=None,member5=None):
         try:
             self.cursor.execute(f'insert into channel_details(member1,member2,member3,member4,member5) values ("{channel_name}",{member1},{member2},{member3},{member4},{member5})')
             self.conn.commit()
@@ -70,7 +70,7 @@ class db:
             self.conn.rollback()
             return (False,Exception)
         
-    def create_text(self,channel_id,user_id,msg):
+    def create_text(self,channel_id:int,user_id:int,msg:str):
         try:
             self.cursor.execute(f'insert into messages(channel_id,from_id,message) values({channel_id},{user_id},"{msg}")')
             self.conn.commit()
@@ -79,7 +79,7 @@ class db:
             self.conn.rollback()
             return (False,e)
 
-    def get_text(self,channel_id,last_read):
+    def get_text(self,channel_id:int,last_read:int):
         try:
             self.cursor.execute(f'select * from messages where channel_id = {channel_id} and msg_id > {last_read}')
             ret = self.cursor.fetchall()
@@ -87,14 +87,11 @@ class db:
         except Exception as e:
             return (False,e)
     
-    def get_channels(self,user_id):
+    def get_channels(self,user_id:int):
         try:
-            self.cursor.execute(f'select channel_id from channel_details where {user_id} in (member1,member2,member3,member4,member5)')
+            self.cursor.execute(f'select channel_id,channel_name from channel_details where {user_id} in (member1,member2,member3,member4,member5)')
             ret = self.cursor.fetchall()
-            retPretty = []
-            for i in ret:
-                retPretty.append(i[0])
-            retPretty = tuple(retPretty)
-            return (True,retPretty)
+
+            return (True,ret)
         except Exception as e:
             return (False,e)
