@@ -111,5 +111,3 @@ class db:
         except Exception as e:
             return (False,e)
 
-database = db('localhost','root','password','test1')
-print(database.get_nickname(2))

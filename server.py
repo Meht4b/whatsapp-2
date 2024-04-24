@@ -80,7 +80,7 @@ def handle_client(conn:socket.socket,user_id):
                     username = database.get_username(user_id)[1]
                     if ret[0]:
                         contact_id = ret[1]
-                        print(database.create_channel(i+','+username,member1=user_id,member2=contact_id))
+                        database.create_channel(i+','+username,member1=user_id,member2=contact_id)
 
             retData = [[],[],{}]
 
@@ -98,7 +98,6 @@ def handle_client(conn:socket.socket,user_id):
                 if channel_info[0]:
                     for i in channel_info[1]:
                         if i:
-                            print(database.get_nickname(i)[1],i)
                             retData[2][i] = database.get_nickname(i)[1]
             
             retData[1] = database.get_channels(user_id)
