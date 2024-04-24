@@ -21,9 +21,10 @@ class user:
         self.new_channels_queue = []
         self.texts = []
         self.channels = []
+        self.members = {}
 
         #fix later
-        self.current_channel = 1
+        self.current_channel = None
 
         self.login_GUI()
         self.window.mainloop()
@@ -140,18 +141,17 @@ class user:
     #creates new channel with user and other contact
     def add_contact_server(self,username):
         self.new_channels_queue.append(username)
+        self.client_loop_GUI()
 
     #to add new contact
     def add_contact_GUI(self,retry=False):
-        pass
+        self.clear()
+        username_entry = ttk.Entry(self.window)
+        username_entry.insert(0,'enter username')
+        username_entry.pack()
 
-    #returns all the channels the user is in as list(server)
-    def get_channels(self): 
-        pass
-
-    #scrollable widget with buttons which requests server chat history
-    def channels_GUI(self):
-        pass
+        ttk.Button(self.window,text='add contact',command=lambda:self.add_contact_server(username_entry.get())).pack()
+        
 
     def update_current_channel(self,e):
         self.current_channel = int(self.channels_dropdown.get().split()[0])
@@ -188,6 +188,7 @@ class user:
         self.current_channel_name.grid(row=0,column=1)
 
         
+
         top_right_frame = ttk.Frame(self.window)
         top_right_frame.grid(column=2,row=0,sticky='e',columnspan=2)
 
@@ -205,19 +206,37 @@ class user:
         self.window.destroy()
 
     def data_loop(self):
+        curr_channel = None
         while True:
             
             time.sleep(0.5)
+            print(self.new_channels_queue)
             self.conn.send(pickle.dumps((self.current_channel,self.send_queue,self.new_channels_queue)))
             self.send_queue.clear()
             self.new_channels_queue.clear()
 
-            data = pickle.loads(self.conn.recv(500))
-            print(self.texts)
-            self.texts.extend(data[0][1])
+            data = pickle.loads(self.conn.recv(5000))
+            print(data)
+
+            if data[0]:
+                self.texts.extend(data[0][1])
             if self.channels != data[1][1]:
                 self.channels = data[1][1]
                 self.client_loop_GUI()
+
+            if curr_channel != self.current_channel:
+                curr_channel=self.current_channel
+                self.text_area.config(state='normal')
+                self.text_area.delete('1.0',tk.END)
+                self.text_area.config(state='disabled')
+            
+            while self.texts:
+                i = self.texts.pop()
+                if i[1]==self.current_channel:
+                    self.text_area.config(state='normal')
+                    self.text_area.insert('end',i[4]+'\n')
+                    self.text_area.yview('end')
+                    self.text_area.config(state='disabled')
 
 
 a =user('localhost',8080)

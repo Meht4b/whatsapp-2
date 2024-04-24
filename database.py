@@ -61,14 +61,14 @@ class db:
         except Exception as e:
             return (False,e)
         
-    def create_channel(self,channel_name:str,member1=None,member2=None,member3=None,member4=None,member5=None):
+    def create_channel(self,channel_name:str,member1='NULL',member2='NULL',member3='NULL',member4='NULL',member5='NULL'):
         try:
-            self.cursor.execute(f'insert into channel_details(member1,member2,member3,member4,member5) values ("{channel_name}",{member1},{member2},{member3},{member4},{member5})')
+            self.cursor.execute(f'insert into channel_details(channel_name,member1,member2,member3,member4,member5) values ("{channel_name}",{member1},{member2},{member3},{member4},{member5})')
             self.conn.commit()
             return (True,self.cursor.lastrowid)
-        except:
+        except Exception as e:
             self.conn.rollback()
-            return (False,Exception)
+            return (False,e)
         
     def create_text(self,channel_id:int,user_id:int,msg:str):
         try:
@@ -88,6 +88,20 @@ class db:
         except Exception as e:
             return (False,e)
     
+    def get_nickname(self,user_id):
+        try:
+            self.cursor.execute(f'select nickname from user_details where user_id={user_id}')
+            return (True,self.cursor.fetchall()[0][0])
+        except Exception as e:
+            return (False,e)
+
+    def get_channel_info(self,channel_id):
+        try:
+            self.cursor.execute(f'select member1,member2,member3,member4,member5 from channel_details where channel_id = {channel_id}')
+            return (True,self.cursor.fetchall())
+        except Exception as e:
+            return (False,e)
+
     def get_channels(self,user_id:int):
         try:
             self.cursor.execute(f'select channel_id,channel_name from channel_details where {user_id} in (member1,member2,member3,member4,member5)')
@@ -96,3 +110,8 @@ class db:
             return (True,ret)
         except Exception as e:
             return (False,e)
+
+database = db('localhost','root','password','test1')
+a = database.get_text(1,0)
+for i in a[1]:
+    print(i[3])
