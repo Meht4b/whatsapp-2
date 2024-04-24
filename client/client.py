@@ -205,41 +205,11 @@ class user:
         self.conn.close()
         self.window.destroy()
 
-    def data_loop(self):
-        curr_channel = None
-        while True:
-            
-            time.sleep(0.5)
-            print(self.new_channels_queue)
-            self.conn.send(pickle.dumps((self.current_channel,self.send_queue,self.new_channels_queue)))
-            self.send_queue.clear()
-            self.new_channels_queue.clear()
+    def server_send(self):
+        pass
 
-            data = pickle.loads(self.conn.recv(5000))
-            print(data)
-
-            if data[0]:
-                self.texts.extend(data[0][1])
-            if self.channels != data[1][1]:
-                self.channels = data[1][1]
-                self.client_loop_GUI()
-
-            if data[2]:
-                self.nicknames = data[2]
-
-            if curr_channel != self.current_channel:
-                curr_channel=self.current_channel
-                self.text_area.config(state='normal')
-                self.text_area.delete('1.0',tk.END)
-                self.text_area.config(state='disabled')
-            
-            while self.texts:
-                i = self.texts.pop(0)
-                if i[1]==self.current_channel:
-                    self.text_area.config(state='normal')
-                    self.text_area.insert('end',f'{self.nicknames[i[2]]}:{i[4]}\n')
-                    self.text_area.yview('end')
-                    self.text_area.config(state='disabled')
+    def server_recv(self):
+        pass
 
 
 a =user('localhost',8080)
