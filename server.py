@@ -66,12 +66,13 @@ def handle_client(conn:socket.socket,user_id):
         try:
             time.sleep(1/2)
             data = pickle.loads(conn.recv(5000))
-            print(data)
+
+            print(data[1])
 
             if data[1]:
                 for i in data[1]:
                     print(i)
-                    database.create_text(i[0],user_id,i[1])
+                    print(database.create_text(i[0],user_id,i[1]))
             
             if data[2]:
                 for i in data[2]:
@@ -83,8 +84,10 @@ def handle_client(conn:socket.socket,user_id):
 
             if data[0] != None:
                 texts_send = database.get_text(data[0],client_last_read[user_id])
-                print(texts_send)
                 retData[0] = texts_send
+                if texts_send[0] and texts_send[1]:
+                    
+                    client_last_read[user_id] = texts_send[1][-1][0]
             
             retData[1] = database.get_channels(user_id)
             conn.send(pickle.dumps(retData))    

@@ -73,6 +73,7 @@ class db:
     def create_text(self,channel_id:int,user_id:int,msg:str):
         try:
             self.cursor.execute(f'insert into messages(channel_id,from_id,message) values({channel_id},{user_id},"{msg}")')
+            print(f'insert into messages(channel_id,from_id,message) values({channel_id},{user_id},"{msg}")')
             self.conn.commit()
             return (True,)
         except Exception as e:
@@ -83,7 +84,7 @@ class db:
         try:
             self.cursor.execute(f'select * from messages where channel_id = {channel_id} and msg_id > {last_read}')
             ret = self.cursor.fetchall()
-            return (True,ret,ret[-1][0])
+            return (True,ret)
         except Exception as e:
             return (False,e)
     

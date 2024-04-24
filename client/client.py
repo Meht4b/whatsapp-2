@@ -37,12 +37,11 @@ class user:
         
         self.conn.send('l'.encode('utf-8'))
         self.conn.send(pickle.dumps((username,password)))
-        print('respod')
         response = pickle.loads(self.conn.recv(500))
-        print(response)
         if response[0] == True:
             self.client_loop_GUI()
-            threading.Thread(target=self.data_loop).start()
+            self.network_thread = threading.Thread(target=self.data_loop)
+            self.network_thread.start()
 
         else:
             self.login_GUI(retry=True)
@@ -159,9 +158,8 @@ class user:
         self.current_channel_name.config(text=self.channels_dropdown.get().split()[1])
 
     def update_sendqueue(self):
-        self.send_queue.append(self.message_text.get())
-        self.message_text.delete(1,ttk.END)
-
+        self.send_queue.append((self.message_text.get(),self.current_channel))
+        self.message_text.delete(0,ttk.END)
 
 
     def client_loop_GUI(self):
@@ -180,7 +178,7 @@ class user:
         self.text_area = ttk.ScrolledText(self.window)
         self.text_area.grid(column=1,row=1,columnspan=3,sticky='ew') 
 
-        self.message_text = ttk.Text(self.window,height=1)
+        self.message_text = ttk.Entry(self.window)
         self.message_text.grid(column=1,row=2,sticky='we',columnspan=2)
 
         ttk.Button(self.window,text='send',command=self.update_sendqueue).grid(column=3,row=2,sticky='we')
@@ -199,16 +197,24 @@ class user:
         change_name  = ttk.Button(top_right_frame,text='change channel name')
         change_name.pack(side='left')
 
+        self.window.protocol('WM_DELETE_WINDOW',self.stop)
+
+
+    def stop(self):
+        self.conn.close()
+        self.window.destroy()
 
     def data_loop(self):
         while True:
+            
             time.sleep(0.5)
             self.conn.send(pickle.dumps((self.current_channel,self.send_queue,self.new_channels_queue)))
             self.send_queue.clear()
             self.new_channels_queue.clear()
 
             data = pickle.loads(self.conn.recv(500))
-            self.texts.extend(data[0])
+            print(self.texts)
+            self.texts.extend(data[0][1])
             if self.channels != data[1][1]:
                 self.channels = data[1][1]
                 self.client_loop_GUI()
