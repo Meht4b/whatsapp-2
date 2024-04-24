@@ -98,7 +98,7 @@ class db:
     def get_channel_info(self,channel_id):
         try:
             self.cursor.execute(f'select member1,member2,member3,member4,member5 from channel_details where channel_id = {channel_id}')
-            return (True,self.cursor.fetchall())
+            return (True,self.cursor.fetchall()[0])
         except Exception as e:
             return (False,e)
 
@@ -112,6 +112,4 @@ class db:
             return (False,e)
 
 database = db('localhost','root','password','test1')
-a = database.get_text(1,0)
-for i in a[1]:
-    print(i[3])
+print(database.get_nickname(2))

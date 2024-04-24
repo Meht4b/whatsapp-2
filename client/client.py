@@ -224,6 +224,9 @@ class user:
                 self.channels = data[1][1]
                 self.client_loop_GUI()
 
+            if data[2]:
+                self.nicknames = data[2]
+
             if curr_channel != self.current_channel:
                 curr_channel=self.current_channel
                 self.text_area.config(state='normal')
@@ -231,10 +234,10 @@ class user:
                 self.text_area.config(state='disabled')
             
             while self.texts:
-                i = self.texts.pop()
+                i = self.texts.pop(0)
                 if i[1]==self.current_channel:
                     self.text_area.config(state='normal')
-                    self.text_area.insert('end',i[4]+'\n')
+                    self.text_area.insert('end',f'{self.nicknames[i[2]]}:{i[4]}\n')
                     self.text_area.yview('end')
                     self.text_area.config(state='disabled')
 

@@ -97,17 +97,19 @@ def handle_client(conn:socket.socket,user_id):
                 channel_info = database.get_channel_info(data[0])
                 if channel_info[0]:
                     for i in channel_info[1]:
-                        retData[2][i] = database.get_nickname(i)[1]
+                        if i:
+                            print(database.get_nickname(i)[1],i)
+                            retData[2][i] = database.get_nickname(i)[1]
             
             retData[1] = database.get_channels(user_id)
-            print(retData)
+
             conn.send(pickle.dumps(retData))    
                 
         except Exception as e:
             print(addr,user_id,e)
             conn.close()
             break
-            return None
+
             
 
 while True:
