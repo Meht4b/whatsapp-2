@@ -205,6 +205,7 @@ class user:
         self.conn.close()
         self.window.destroy()
 
+
     def data_loop(self):
         curr_channel = None
         while True:
