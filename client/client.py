@@ -181,7 +181,7 @@ class user:
         self.message_text = ttk.Entry(self.window)
         self.message_text.grid(column=1,row=2,sticky='we',columnspan=2)
 
-        ttk.Button(self.window,text='send',command=self.update_sendqueue).grid(column=3,row=2,sticky='we')
+        ttk.Button(self.window,text='send',command=self.server_send).grid(column=3,row=2,sticky='we')
 
 
         self.current_channel_name = ttk.Label(self.window)
@@ -206,10 +206,13 @@ class user:
         self.window.destroy()
 
     def server_send(self):
-        pass
+        
+        self.conn.send(pickle.dumps((self.message_text.get(),self.current_channel)))
+        self.message_text.delete(0,ttk.END)
+        
 
     def server_recv(self):
-        pass
+        data = self.conn.recv()
 
 
 a =user('localhost',8080)
